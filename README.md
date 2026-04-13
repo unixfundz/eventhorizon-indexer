@@ -153,6 +153,10 @@ kubectl get pods -n eventhorizon
 
 ---
 
+## Contributing
+
+See `CONTRIBUTING.md` for contribution workflow, coding standards, PR requirements, and quality gates.
+
 ## License
 
 MIT — see `LICENSE`.
