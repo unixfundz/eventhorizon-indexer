@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: eventhorizon-beat
+  namespace: eventhorizon
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: eventhorizon-beat
+  template:
+    metadata:
+      labels:
+        app: eventhorizon-beat
+    spec:
+      containers:
+        - name: beat
+          image: your-registry/eventhorizon-backend:v1.0.0
+          command: ["celery", "-A", "eventhorizon", "beat", "-l", "INFO"]
+          envFrom:
+            - configMapRef:
+                name: eventhorizon-config
+            - secretRef:
+                name: eventhorizon-secrets

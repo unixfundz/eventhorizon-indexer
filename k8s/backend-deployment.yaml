@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: eventhorizon-backend
+  namespace: eventhorizon
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: eventhorizon-backend
+  template:
+    metadata:
+      labels:
+        app: eventhorizon-backend
+    spec:
+      initContainers:
+        - name: migrate
+          image: your-registry/eventhorizon-backend:v1.0.0
+          command: ["python", "manage.py", "migrate", "--noinput"]
+          envFrom:
+            - configMapRef:
+                name: eventhorizon-config
+            - secretRef:
+                name: eventhorizon-secrets
+      containers:
+        - name: backend
+          image: your-registry/eventhorizon-backend:v1.0.0
+          ports:
+            - containerPort: 8000
+          readinessProbe:
+            httpGet:
+              path: /api/events/
+              port: 8000
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          envFrom:
+            - configMapRef:
+                name: eventhorizon-config
+            - secretRef:
+                name: eventhorizon-secrets

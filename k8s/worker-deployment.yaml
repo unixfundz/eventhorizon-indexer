@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: eventhorizon-worker
+  namespace: eventhorizon
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: eventhorizon-worker
+  template:
+    metadata:
+      labels:
+        app: eventhorizon-worker
+    spec:
+      containers:
+        - name: worker
+          image: your-registry/eventhorizon-backend:v1.0.0
+          command: ["celery", "-A", "eventhorizon", "worker", "-Q", "default,webhooks,backfill", "-l", "INFO"]
+          envFrom:
+            - configMapRef:
+                name: eventhorizon-config
+            - secretRef:
+                name: eventhorizon-secrets

@@ -1,0 +1,32 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Soroban contract
+        working-directory: eventhorizon-indexer/soroban-contracts/eventhorizon_core
+        run: |
+          rustup target add wasm32-unknown-unknown
+          cargo build --target wasm32-unknown-unknown --release
+
+      - name: Build backend image
+        working-directory: eventhorizon-indexer/django-backend
+        run: docker build -t eventhorizon-backend:${GITHUB_REF_NAME} .
+
+      - name: Create source tarball
+        run: tar -czf eventhorizon-indexer-${GITHUB_REF_NAME}.tar.gz eventhorizon-indexer
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            eventhorizon-indexer/soroban-contracts/eventhorizon_core/target/wasm32-unknown-unknown/release/eventhorizon_core.wasm
+            eventhorizon-indexer-${{ github.ref_name }}.tar.gz

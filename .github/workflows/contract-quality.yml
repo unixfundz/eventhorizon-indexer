@@ -1,0 +1,29 @@
+name: Contract Quality
+
+on:
+  push:
+    paths:
+      - "eventhorizon-indexer/soroban-contracts/**"
+      - ".github/workflows/contract-quality.yml"
+  pull_request:
+    paths:
+      - "eventhorizon-indexer/soroban-contracts/**"
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: eventhorizon-indexer/soroban-contracts/eventhorizon_core
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+          components: rustfmt, clippy
+      - name: Format check
+        run: cargo fmt -- --check
+      - name: Clippy
+        run: cargo clippy --target wasm32-unknown-unknown -- -D warnings
+      - name: Unit tests
+        run: cargo test

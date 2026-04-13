@@ -1,0 +1,49 @@
+name: Django CI
+
+on:
+  push:
+    paths:
+      - "eventhorizon-indexer/django-backend/**"
+      - ".github/workflows/django-ci.yml"
+  pull_request:
+    paths:
+      - "eventhorizon-indexer/django-backend/**"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: eventhorizon-indexer/django-backend
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: eventhorizon
+          POSTGRES_PASSWORD: eventhorizon
+          POSTGRES_DB: eventhorizon
+        ports:
+          - 5432:5432
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: pip install -r requirements.txt dj-database-url
+      - name: Lint
+        run: ruff check .
+      - name: Test
+        env:
+          SECRET_KEY: ci
+          DEBUG: "0"
+          DATABASE_URL: postgresql://eventhorizon:eventhorizon@localhost:5432/eventhorizon
+          CELERY_BROKER_URL: redis://localhost:6379/0
+          CELERY_RESULT_BACKEND: redis://localhost:6379/1
+        run: pytest
